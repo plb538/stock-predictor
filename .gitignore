@@ -1,4 +1,3 @@
-bin/
-include/
-lib/
-data-science-notes/
+venv/
+.idea/
+test/
