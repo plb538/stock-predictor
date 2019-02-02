@@ -1,10 +1,8 @@
  #!/usr/bin/env python
 
 import fix_yahoo_finance as y
-import matplotlib as plt
-import numpy as np
+import matplotlib.pyplot as plt
 from pandas_datareader import data as pdr
-import traceback as tb
 
 y.pdr_override()
 
@@ -49,42 +47,109 @@ def sort_data(data):
 if __name__ == '__main__':
 
 	company0 = Company('AMD')
+	start_date = '2017-01-01'
+	end_date = '2017-01-31'
+	output_dir = '/home/plb538/Repos/stock-predictor/test/'
+	output_file = 'test.txt'
+	output_file_dest = "{}/{}".format(output_dir, output_file)
 
-	output_dest = '/home/plb538/Repos/stock-predictor/test/test.txt'
-
-	# Clear text file
-	fd = open(output_dest, 'w')
+	# Create/erase text file
+	fd = open(output_file_dest, 'w')
 	fd.close()
 
-	fd = open(output_dest, 'a')
+	# Open file
+	fd = open(output_file_dest, 'a')
 	fd.write("{} Summary\n\n".format(company0.name))
 
+	# Try to get data from Yahoo
+	attempts = 0
 	while True:
 		try:
-			data = pdr.get_data_yahoo(company0.name, start='2017-01-01', end='2017-02-28')
+			data = pdr.get_data_yahoo(company0.name, start=start_date, end=end_date)
 		except ValueError:
-			print("Retrying")
-			pass
+			print("Retrying...")
+			if attempts == 5:
+				print("Failed to download data from Yahoo.")
+				exit(0)
+			else:
+				attempts += 1
 		else:
+			print("Successfully downloaded data from Yahoo.")
 			break
 
-
+	# Write data to file
 	data = data.to_csv()
 	fd.write(data)
-
-
-	data_dict = sort_data(data)
-	print(data_dict['dates'])
-
-
-	#x_range = np.arange(1, len(close_prices)+1, 1)
-	#print(x_range)
-
-	#axis = plt.axes()
-	#axis.set_xticks(x_range)
-	#axis.set_yticks(close_prices)
-	#axis.grid()
-	#plt.plot(x_range, close_prices)
-	#plt.show()
-
 	fd.close()
+
+	# Turn data into dict
+	data_dict = sort_data(data)
+
+	# Setup X coordinates
+	x_data = data_dict['dates']
+
+	# Setup Y coordinates
+	y_data_open_prices = data_dict['open_prices']
+	y_data_close_prices = data_dict['close_prices']
+	y_data_low_prices = data_dict['low_prices']
+	y_data_high_prices = data_dict['high_prices']
+
+	### PLOT 1 ###
+	plt.figure()
+
+	# Setup axis
+	axis = plt.axes()
+	axis.grid()
+
+	# Setup plots
+	plt.plot(x_data, y_data_open_prices, 'r-')
+	plt.plot(x_data, y_data_close_prices, 'g-')
+	plt.plot(x_data, y_data_low_prices, 'r:')
+	plt.plot(x_data, y_data_high_prices, 'g:')
+	plt.legend(['Open', 'Close', 'Low', 'High'])
+
+	# Plot details
+	plt.title("{} Summary From {} To {}".format(company0.name, start_date, end_date))
+	plt.xlabel('Date')
+	plt.ylabel('Price')
+	plt.xticks(rotation='vertical')
+
+	plt.tight_layout()
+
+	# Show/save plots
+	# plt.show()
+	plt.savefig("{}/{}".format(output_dir, 'summary.png'))
+	plt.close()
+	######
+
+	### PLOT 2 ###
+	fig, (ax1, ax2) = plt.subplots(2, 1)
+	ax1.plot(x_data, y_data_open_prices, 'r-')
+	ax1.plot(x_data, y_data_close_prices, 'g-')
+	ax1.legend(['Open', 'Close'])
+	ax1.grid()
+	ax1.set_title("{} Open/Close Prices From {} To {}".format(company0.name, start_date, end_date))
+	ax1.set_xlabel('Date')
+	ax1.set_ylabel('Price')
+	for tick in ax1.get_xticklabels():
+		tick.set_rotation(90)
+
+	ax2.plot(x_data, y_data_low_prices, 'r-')
+	ax2.plot(x_data, y_data_high_prices, 'g-')
+	ax2.legend(['Low', 'High'])
+	ax2.grid()
+	ax2.set_title("{} Low/High Prices From {} To {}".format(company0.name, start_date, end_date))
+	ax2.set_xlabel('Date')
+	ax2.set_ylabel('Price')
+	for tick in ax2.get_xticklabels():
+		tick.set_rotation(90)
+
+	plt.tight_layout()
+
+	# Show/save plots
+	# plt.show()
+	plt.savefig("{}/{}".format(output_dir, 'comparison.png'))
+	plt.close()
+	######
+
+	print("Finished.")
