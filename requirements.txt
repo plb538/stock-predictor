@@ -4,10 +4,12 @@ cycler==0.10.0
 fix-yahoo-finance==0.0.22
 idna==2.8
 kiwisolver==1.0.1
+lxml==4.3.0
 matplotlib==3.0.2
 multitasking==0.0.7
 numpy==1.16.1
 pandas==0.24.0
+pandas-datareader==0.7.0
 patsy==0.5.1
 pkg-resources==0.0.0
 pyparsing==2.3.1
@@ -20,4 +22,5 @@ simplejson==3.16.0
 six==1.12.0
 statsmodels==0.9.0
 urllib3==1.24.1
+wrapt==1.11.1
 yahoo-finance==1.4.0
